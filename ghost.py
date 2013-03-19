@@ -6,6 +6,7 @@ version 0.0.1
 (c) marcos ojeda, 2013, marcos at generic dot cx
 """
 import discogs_client as discogs
+import re
 import requests
 import sys
 
@@ -16,23 +17,27 @@ def query_link(link):
     """ask spotify about one of their urls"""
     payload = {'uri': link}
     data = requests.get(BASE_URI, params=payload)
-    data = data.json()
-    if data['info']['type'] == 'track':
-        d = data['track']
-        name = d['name'].lower()
-        artist = d['artists'][0]['name'].lower()
-        album = d['album']['name'].lower()
-        year = d['album']['released']  # this is dodgy
-        album, artist, year = corroborate(album, artist, year)
-        print '%s, %s (%s)' % (name, artist, year)
-    if data['info']['type'] == 'album':
-        d = data['album']
-        name = d['name'].lower()
-        artist = d['artist'].lower()
-        year = d['released']
-        name, artist, year = corroborate(name, artist, year)
-        print '%s, %s (%s)' % (name, artist, year)
-    print "  %s" % link
+    if data.status_code == 200:
+        data = data.json()
+        if data['info']['type'] == 'track':
+            d = data['track']
+            name = d['name'].lower()
+            artist = d['artists'][0]['name'].lower()
+            album = d['album']['name'].lower()
+            year = d['album']['released']  # this is dodgy
+            album, artist, year = corroborate(album, artist, year)
+            print '%s, %s (%s)' % (name, artist, year)
+        if data['info']['type'] == 'album':
+            d = data['album']
+            name = d['name'].lower()
+            artist = d['artist'].lower()
+            year = d['released']
+            name, artist, year = corroborate(name, artist, year)
+            print '%s, %s (%s)' % (name, artist, year)
+        print "  %s" % link
+        return
+    else:
+        sys.stderr.write('[%s] %s' % (data.status_code, data.text.strip()))
 
 def corroborate(name, artist, year):
     """corroborate spotify's dodgy info with discogs"""
@@ -49,6 +54,9 @@ def corroborate(name, artist, year):
 
 if __name__ == '__main__':
 
+    rematch = re.compile(r'(http://open\.spotify.com/[ta].*?/.+)[\s\b]?')
+
     for line in sys.stdin:
-        if line.strip().startswith('http'):
-            query_link(line.strip())
+        res = rematch.search(line)
+        if res:
+            query_link(res.group(1))
