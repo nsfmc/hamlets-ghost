@@ -15,3 +15,12 @@ to get this going, set up a virtual env and install the reqs
 then, on a mac
 
     pbpaste | python ghost.py | pbcopy
+
+when you feed it some text that contains spotify links, it outputs a list of tracks and their relevant links, ala:
+
+    rockin' it aka spanish harlem, camp lo (1997)
+      http://open.spotify.com/track/3efXNwMTiAEkPzFgO68xKD
+    merrymaking at my place, calvin harris (2007)
+      http://open.spotify.com/track/49FDRz3aIrTFujAEpN8g3i
+
+it is very naïve about how it searches discogs, so sometimes it will give you the wrong year for tracks, but often it does catch 'reissues' and manages to spit out the appropriate year which spotify almost always messes up.
